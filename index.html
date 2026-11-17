@@ -516,7 +516,7 @@ function render(){
   const shopVal=focusShop?document.activeElement.value:'';
   document.getElementById('main').innerHTML=v();
   if(focusShop){const i=document.getElementById('shopInput');if(i){i.value=shopVal;i.focus()}}
-  document.getElementById('nav').innerHTML=[['today','Сегодня','home'],['tasks','Задачи','tasks'],['plans','Планы','target'],['kitchen','Кухня','kitchen'],['budget','Бюджет','budget']].map(([k,l,i])=>`<button class="${S.view===k?'on':''}" data-act="go" data-v="${k}">${IC[i]}${l}</button>`).join('');
+  document.getElementById('nav').innerHTML=[['budget','Бюджет','budget'],['kitchen','Кухня','kitchen'],['today','Сегодня','home'],['tasks','Задачи','tasks'],['plans','Планы','target']].map(([k,l,i])=>`<button class="${S.view===k?'on':''}" data-act="go" data-v="${k}">${IC[i]}${l}</button>`).join('');
   const fab=document.getElementById('fab');fab.innerHTML=IC.plus;fab.style.display=S.view==='kitchen'?'none':'flex';
 }
 
