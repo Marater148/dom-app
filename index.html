@@ -111,8 +111,8 @@ input.f:focus,textarea.f:focus{border-color:var(--dim)}
 .tag{font-size:10.5px;padding:2px 7px;border-radius:8px;background:var(--card2);color:var(--muted);margin-left:6px;vertical-align:1px}
 .tag.late{color:var(--bad)}
 /* фото-фон */
-#bgph{position:fixed;inset:0;z-index:-2;background:#121418 center/cover no-repeat;opacity:0;transition:opacity .9s ease;transform:scale(1.04)}
-#bgph.on{opacity:1}
+.bgph{position:fixed;inset:0;z-index:-2;background:#121418 center/cover no-repeat;opacity:0;transition:opacity 1.6s ease;transform:scale(1.04)}
+.bgph.on{opacity:1}
 #bgveil{position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(14,16,20,.62) 0%,rgba(14,16,20,.78) 45%,rgba(14,16,20,.9) 100%)}
 html.ph,html.ph body{background:#121418}
 html.ph body{background:transparent}
@@ -121,12 +121,18 @@ html.ph .nav{background:rgba(18,20,24,.6);-webkit-backdrop-filter:blur(18px);bac
 </style>
 </head>
 <body>
-<div id="bgph"></div><div id="bgveil"></div>
+<div class="bgph" id="bgA"></div><div class="bgph" id="bgB"></div><div id="bgveil"></div>
 <script>
-(function(){var N=21,k='dom_bg_last',last=-1;try{last=+localStorage.getItem(k)}catch(e){}
-var i;do{i=1+Math.floor(Math.random()*N)}while(N>1&&i===last);try{localStorage.setItem(k,i)}catch(e){}
-var u='bg/'+(i<10?'0':'')+i+'.webp',im=new Image();document.documentElement.classList.add('ph');
-im.onload=function(){var d=document.getElementById('bgph');d.style.backgroundImage='url('+u+')';d.classList.add('on')};im.src=u})();
+(function(){var N=21,K='dom_bg_last',cur=-1,front=0,L=[document.getElementById('bgA'),document.getElementById('bgB')];
+try{cur=+localStorage.getItem(K)}catch(e){}
+document.documentElement.classList.add('ph');
+function pick(){var i;do{i=1+Math.floor(Math.random()*N)}while(N>1&&i===cur);return i}
+function show(){var i=pick(),u='bg/'+(i<10?'0':'')+i+'.webp',im=new Image();
+ im.onload=function(){cur=i;try{localStorage.setItem(K,i)}catch(e){}
+  var nx=L[1-front];nx.style.backgroundImage='url('+u+')';nx.classList.add('on');L[front].classList.remove('on');front=1-front};
+ im.src=u}
+show();setInterval(function(){if(!document.hidden)show()},15000);
+})();
 </script>
 <div class="app">
   <div id="status"></div>
