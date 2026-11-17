@@ -24,12 +24,10 @@
 |---|---|---|---|
 | Заголовок | `Дом` | 14, жирный | `#B5A8E8` |
 | Подпись | `Осталось в месяце` | 11 | `#B4B8C0` |
-| Бюджет | `$$wg(gv(u), json, .budgetLeftUsd)$` | 28, жирный | `#A8D5A2` |
+| Бюджет | `$wg(gv(u), json, .budgetLeftUsd)$ USD` | 28, жирный | `#A8D5A2` |
 | Задачи | `Задач: $wg(gv(u), json, .tasksCount)$ · купить: $wg(gv(u), json, .shopCount)$` | 13 | `#ECEAE4` |
 | Ужин | `Ужин: $wg(gv(u), json, .dinner)$` | 13 | `#ECEAE4` |
 | Платёж | `$wg(gv(u), json, .nextPayment.day)$-го: $wg(gv(u), json, .nextPayment.name)$` | 12 | `#F2B880` |
-
-Если вместо знака `$` в строке «Бюджет» ничего не видно — замените формулу на `$wg(gv(u), json, .budgetLeftUsd)$ USD`.
 
 ## 5. Нажатие открывает приложение
 Выделите группу → вкладка **Касание** (Touch) → **Открыть ссылку** → `https://marater148.github.io/dom-app/`
