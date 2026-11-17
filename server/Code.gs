@@ -25,7 +25,13 @@ const num = v => { const t = String(v ?? '').replace(/[\s $₾]/g, '').replace(
 const today = () => Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
 
 /* ---------- collections: how app objects map to sheet rows ---------- */
+const HOR_NAMES = { m1: 'Месяц', m3: '3 месяца', m6: 'Полгода', y1: 'Год' };
+const HOR_FROM = { 'месяц': 'm1', '3 месяца': 'm3', 'полгода': 'm6', 'год': 'y1' };
+const HEADERS = { plans: ['ID', 'План', 'Кто', 'Горизонт', 'Срок', 'Выполнено', 'Заметка', 'ts'] };
 const COLS = {
+  plans: { sheet: 'Планы', idCol: 0, width: 8,
+    to: o => [o.id, o.title || '', WHO[o.who] || 'Вместе', HOR_NAMES[o.hor] || 'Месяц', iso2ru(o.due), o.done ? 'да' : '', o.note || '', o.ts || ''],
+    from: r => ({ id: r[0], title: r[1], who: WHO_R[String(r[2]).toLowerCase()] || 'both', hor: HOR_FROM[String(r[3]).trim().toLowerCase()] || 'm1', due: ru2iso(r[4]) || '', done: yes(r[5]), note: r[6], ts: num(r[7]) }) },
   tasks: { sheet: 'Задачи', idCol: 0, width: 7,
     to: o => [o.id, o.title || '', WHO[o.who] || 'Вместе', iso2ru(o.date), o.scope === 'week' ? 'да' : '', o.done ? 'да' : '', o.ts || ''],
     from: r => ({ id: r[0], title: r[1], who: WHO_R[String(r[2]).toLowerCase()] || 'both', date: ru2iso(r[3]) || today(), scope: yes(r[4]) ? 'week' : 'day', done: yes(r[5]), ts: num(r[6]) }) },
@@ -49,7 +55,9 @@ const COLS = {
 };
 
 function sheetOf(c) {
-  const sh = SpreadsheetApp.getActive().getSheetByName(COLS[c].sheet);
+  const ss = SpreadsheetApp.getActive();
+  let sh = ss.getSheetByName(COLS[c].sheet);
+  if (!sh && HEADERS[c]) { sh = ss.insertSheet(COLS[c].sheet); sh.getRange(1, 1, 1, HEADERS[c].length).setValues([HEADERS[c]]).setFontWeight('bold'); sh.setFrozenRows(1); }
   if (!sh) throw new Error('Нет вкладки «' + COLS[c].sheet + '»');
   return sh;
 }
@@ -115,7 +123,7 @@ function parsePlan(values) {
 /* ---------- API ---------- */
 function all() {
   return { ok: true, serverTime: new Date().toISOString(), today: today(), rate: rate(),
-    tasks: readCol('tasks'), chores: readCol('chores'), menu: readCol('menu'), shop: readCol('shop'), tx: readCol('tx'),
+    tasks: readCol('tasks'), plans: readCol('plans'), chores: readCol('chores'), menu: readCol('menu'), shop: readCol('shop'), tx: readCol('tx'),
     income: incomeValues(), plan: planValues(), sheetUrl: SpreadsheetApp.getActive().getUrl(),
     incomeGid: (SpreadsheetApp.getActive().getSheetByName('ДОХОДЫ') || { getSheetId: () => '' }).getSheetId(),
     planGid: (SpreadsheetApp.getActive().getSheetByName('РАСХОДЫ в месяц') || { getSheetId: () => '' }).getSheetId() };

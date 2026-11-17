@@ -149,6 +149,7 @@ home:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="curren
 tasks:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L6.8 5M3.5 12l1.2 1.2L6.8 11M3.5 18l1.2 1.2L6.8 17"/></svg>',
 kitchen:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h2l2.2 10.5a1 1 0 0 0 1 .8h8.6a1 1 0 0 0 1-.8L20 8H7"/><circle cx="10" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/></svg>',
 budget:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 14.5h2"/></svg>',
+target:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
 chart:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-6"/></svg>',
 plus:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
 gear:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
@@ -164,7 +165,7 @@ const MONTHS_G=['января','февраля','марта','апреля','м�
 const WD_FULL=['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
 const INCOME_SRC=['Клиенты','Подработки','Зарплата','Подарок','Другое'];
 
-const S={db:null,user:null,uid:null,me:null,members:{},tasks:[],chores:[],menu:{},shop:[],tx:[],budget:null,rate:null,
+const S={db:null,user:null,uid:null,me:null,members:{},tasks:[],plans:[],planH:'m1',chores:[],menu:{},shop:[],tx:[],budget:null,rate:null,
   view:'today',filter:'all',taskMode:'day',selDate:null,weekOff:0,kWeekOff:0,month:null,loaded:new Set(),readOnly:false,status:'Подключаюсь к общей базе…'};
 
 const pad=n=>String(n).padStart(2,'0');
@@ -320,7 +321,7 @@ function hdr(){
   const d=new Date(),h=d.getHours();
   const g=h<5?'Доброй ночи':h<12?'Доброе утро':h<18?'Добрый день':'Добрый вечер';
   const r=rateNow();
-  const titles={today:`${g}${S.me?', '+NAMES[S.me]:''}`,tasks:'Задачи',kitchen:'Кухня',budget:'Бюджет'};
+  const titles={today:`${g}${S.me?', '+NAMES[S.me]:''}`,tasks:'Задачи',plans:'Планы',kitchen:'Кухня',budget:'Бюджет'};
   return `<div><div class="sub">${WD_FULL[d.getDay()][0].toUpperCase()+WD_FULL[d.getDay()].slice(1)}, ${d.getDate()} ${MONTHS_G[d.getMonth()]}</div><h1>${titles[S.view]}</h1></div>
   <div style="display:flex;gap:10px;align-items:flex-start">${r?`<div class="rate"><b>${fmt(r,4)} ₾</b>за $1 · НБГ</div>`:''}<button class="iconbtn" data-act="settings" aria-label="Настройки">${IC.gear}</button></div>`;
 }
@@ -394,6 +395,27 @@ function vTasks(){
   const ch=S.chores.filter(c=>visible(c.who)).sort((a,b)=>(a.freq>b.freq?1:-1)||(a.weekday??0)-(b.weekday??0));
   return filterChips()+`<div class="seg"><button class="${S.taskMode==='day'?'on':''}" data-act="taskMode" data-v="day">День</button><button class="${S.taskMode==='week'?'on':''}" data-act="taskMode" data-v="week">Неделя</button></div>`+body+
   `<div class="lbl"><span>Домашние дела</span><button data-act="addChore">+ дело</button></div><div class="card">${ch.map(choreRow).join('')||'<div class="empty">Добавьте регулярные дела: уборка, стирка, полить цветы…</div>'}</div>`;
+}
+
+const HOR=[['m1','Месяц',1],['m3','3 месяца',3],['m6','Полгода',6],['y1','Год',12]];
+const horName=k=>(HOR.find(x=>x[0]===k)||HOR[0])[1];
+function dueFor(k,from){const n=(HOR.find(x=>x[0]===k)||HOR[0])[2];const d=parse(from||today());const e=new Date(d.getFullYear(),d.getMonth()+n,0);return iso(e)}
+function dLong(s){const d=parse(s);return d.getDate()+' '+MONTHS_G[d.getMonth()]+(d.getFullYear()!==new Date().getFullYear()?' '+d.getFullYear():'')}
+function planRow(p){
+  const late=!p.done&&p.due&&p.due<today();
+  const sub=[NAMES[p.who]||'Вместе'];if(p.due)sub.push('до '+dLong(p.due));
+  return `<div class="row ${p.done?'done':''}"><span class="bar" style="background:${color(p.who)}"></span>
+  <button class="grow" style="text-align:left" data-act="editPlan" data-id="${p.id}"><div class="t">${esc(p.title)}${late?'<span class="tag late">срок прошёл</span>':''}</div><div class="s">${sub.join(' · ')}${p.note?' · '+esc(p.note):''}</div></button>
+  <button class="chk ${p.done?'on':''}" data-act="togglePlan" data-id="${p.id}" aria-label="Отметить">${p.done?IC.check:''}</button></div>`;
+}
+function vPlans(){
+  const vis=S.plans.filter(p=>visible(p.who));
+  const seg=`<div class="seg">${HOR.map(([k,l])=>{const n=vis.filter(p=>p.hor===k&&!p.done).length;return `<button class="${S.planH===k?'on':''}" data-act="planH" data-v="${k}">${{m1:'Месяц',m3:'3 мес',m6:'Полгода',y1:'Год'}[k]}${n?` <span style="opacity:.6">${n}</span>`:''}</button>`}).join('')}</div>`;
+  const list=vis.filter(p=>p.hor===S.planH).sort((a,b)=>a.done-b.done||(a.due||'').localeCompare(b.due||'')||(a.ts||0)-(b.ts||0));
+  const done=list.filter(p=>p.done).length,pct=list.length?Math.round(done/list.length*100):0;
+  const prog=list.length?`<div class="card pad" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px"><span class="s">Выполнено</span><span>${done} из ${list.length}</span></div><div class="prog"><i style="width:${pct}%"></i></div></div>`:'';
+  return filterChips()+seg+prog+`<div class="lbl"><span>Планы · ${horName(S.planH).toLowerCase()}</span><button data-act="addPlan">+ план</button></div>
+  <div class="card">${list.map(planRow).join('')||'<div class="empty">Добавьте цели на этот срок: поездка, покупка, привычка, накопления…</div>'}</div>`;
 }
 
 function vKitchen(){
@@ -489,12 +511,12 @@ function vBudget(){
 function render(){
   document.getElementById('status').innerHTML=S.status?`<div class="status">${esc(S.status)}</div>`:'';
   document.getElementById('hdr').innerHTML=hdr();
-  const v={today:vToday,tasks:vTasks,kitchen:vKitchen,budget:vBudget}[S.view];
+  const v={today:vToday,tasks:vTasks,plans:vPlans,kitchen:vKitchen,budget:vBudget}[S.view];
   const focusShop=document.activeElement&&document.activeElement.id==='shopInput';
   const shopVal=focusShop?document.activeElement.value:'';
   document.getElementById('main').innerHTML=v();
   if(focusShop){const i=document.getElementById('shopInput');if(i){i.value=shopVal;i.focus()}}
-  document.getElementById('nav').innerHTML=[['today','Сегодня','home'],['tasks','Задачи','tasks'],['kitchen','Кухня','kitchen'],['budget','Бюджет','budget']].map(([k,l,i])=>`<button class="${S.view===k?'on':''}" data-act="go" data-v="${k}">${IC[i]}${l}</button>`).join('');
+  document.getElementById('nav').innerHTML=[['today','Сегодня','home'],['tasks','Задачи','tasks'],['plans','Планы','target'],['kitchen','Кухня','kitchen'],['budget','Бюджет','budget']].map(([k,l,i])=>`<button class="${S.view===k?'on':''}" data-act="go" data-v="${k}">${IC[i]}${l}</button>`).join('');
   const fab=document.getElementById('fab');fab.innerHTML=IC.plus;fab.style.display=S.view==='kitchen'?'none':'flex';
 }
 
@@ -514,6 +536,17 @@ function taskSheet(t,def={}){
   <div class="fld"><span id="dateLbl">${st.scope==='week'?'Неделя, в которую входит дата':'Дата'}</span><input class="f" type="date" name="date" value="${st.date}"></div>
   <button class="btn pri wide" type="submit">${t?'Сохранить':'Добавить'}</button>
   ${t?`<button type="button" class="btn danger wide" style="margin-top:8px" data-act="del" data-col="tasks" data-id="${t.id}">Удалить</button>`:''}</form>`,st);
+}
+function planSheet(p){
+  const st=p?{...p}:{title:'',who:S.me||'both',hor:S.planH||'m1',due:dueFor(S.planH||'m1'),note:'',done:false};
+  openSheet(sheetHead(p?'План':'Новый план')+
+  `<form data-form="plan"><div class="fld"><input class="f" name="title" placeholder="Например, накопить на отпуск" value="${esc(st.title)}" required autocomplete="off"></div>
+  <div class="fld"><span>Чей план</span>${whoOpts(st.who)}</div>
+  <div class="fld"><span>Горизонт</span><div class="opts">${HOR.map(([k,l])=>`<button type="button" class="opt ${st.hor===k?'on':''}" data-act="pick" data-k="hor" data-v="${k}">${l}</button>`).join('')}</div></div>
+  <div class="fld"><span>Срок</span><input class="f" type="date" name="due" id="planDue" value="${st.due||''}"></div>
+  <div class="fld"><span>Заметка</span><input class="f" name="note" placeholder="Шаги, сумма, детали" value="${esc(st.note||'')}" autocomplete="off"></div>
+  <button class="btn pri wide" type="submit">${p?'Сохранить':'Добавить'}</button>
+  ${p?`<button type="button" class="btn danger wide" style="margin-top:8px" data-act="del" data-col="plans" data-id="${p.id}">Удалить</button>`:''}</form>`,st);
 }
 function choreSheet(c){
   const st=c?{...c}:{title:'',who:S.me||'both',freq:'weekly',weekday:5};
@@ -589,6 +622,10 @@ document.addEventListener('click',async e=>{
     case 'go':S.view=v;closeSheet();render();scrollTo(0,0);break;
     case 'filter':S.filter=v;render();break;
     case 'taskMode':S.taskMode=v;render();break;
+    case 'planH':S.planH=v;render();break;
+    case 'addPlan':planSheet();break;
+    case 'editPlan':planSheet(S.plans.find(p=>p.id===id));break;
+    case 'togglePlan':{const p=S.plans.find(x=>x.id===id);if(p)await w(()=>D.doc('plans/'+id).update({done:!p.done}));break}
     case 'weekNav':S.weekOff+=+v;S.selDate=weekDays(S.weekOff)[0];if(S.weekOff===0)S.selDate=today();render();break;
     case 'kWeekNav':S.kWeekOff+=+v;render();break;
     case 'selDay':S.selDate=b.dataset.d;render();break;
@@ -611,6 +648,7 @@ document.addEventListener('click',async e=>{
       if(!SH)return;const k=b.dataset.k;SH[k]=k==='weekday'?+v:v;
       b.parentElement.querySelectorAll('[data-act="pick"]').forEach(x=>x.classList.toggle('on',x===b));
       if(k==='scope'){const l=document.getElementById('dateLbl');if(l)l.textContent=v==='week'?'Неделя, в которую входит дата':'Дата'}
+      if(k==='hor'&&!SH.id){const d=document.getElementById('planDue');if(d)d.value=dueFor(v)}
       if(k==='freq'){const f=document.getElementById('wdFld');if(f)f.style.display=v==='daily'?'none':''}
       if(k==='type'){document.getElementById('catFld').style.display=v==='expense'?'':'none';document.getElementById('srcFld').style.display=v==='income'?'':'none'}
       if(k==='cur'){document.getElementById('rateFld').style.display=v==='GEL'?'':'none'}
@@ -642,7 +680,7 @@ document.addEventListener('click',async e=>{
   }
 });
 document.getElementById('fab').addEventListener('click',()=>{
-  if(S.view==='budget')txSheet();else taskSheet(null,{date:S.view==='tasks'?S.selDate:today()});
+  if(S.view==='budget')txSheet();else if(S.view==='plans')planSheet();else taskSheet(null,{date:S.view==='tasks'?S.selDate:today()});
 });
 document.addEventListener('input',e=>{if(e.target.closest('form[data-form="tx"]'))updUsdPrev()});
 document.addEventListener('submit',async e=>{
@@ -654,6 +692,9 @@ document.addEventListener('submit',async e=>{
     let date=f.date.value||today();if(SH.scope==='week'){const d=parse(date);d.setDate(d.getDate()-wdIdx(d));date=iso(d)}
     const body={title,who:SH.who,date,scope:SH.scope,done:!!SH.done,by:SH.by||S.me||null,ts:SH.ts||Date.now()};
     const ok=await w(()=>SH.id?D.doc('tasks/'+SH.id).set(body):D.collection('tasks').add(body));if(ok)closeSheet();return}
+  if(kind==='plan'){const title=f.title.value.trim();if(!title){toast('Введите план');return}
+    const body={title,who:SH.who,hor:SH.hor,due:f.due.value||dueFor(SH.hor),note:f.note.value.trim(),done:!!SH.done,by:SH.by||S.me||null,ts:SH.ts||Date.now()};
+    const ok=await w(()=>SH.id?D.doc('plans/'+SH.id).set(body):D.collection('plans').add(body));if(ok)closeSheet();return}
   if(kind==='chore'){const title=f.title.value.trim();if(!title){toast('Введите название дела');return}
     const body={title,who:SH.who,freq:SH.freq,weekday:SH.weekday??0,last:SH.last||null,prev:SH.prev||null,ts:SH.ts||Date.now()};
     const ok=await w(()=>SH.id?D.doc('chores/'+SH.id).set(body):D.collection('chores').add(body));if(ok)closeSheet();return}
@@ -673,8 +714,8 @@ document.addEventListener('submit',async e=>{
 const LS={get:k=>{try{return JSON.parse(localStorage.getItem('dom_'+k))}catch(_){return null}},set:(k,v)=>{try{localStorage.setItem('dom_'+k,JSON.stringify(v))}catch(_){}}};
 let CFG=LS.get('cfg');
 let QUEUE=LS.get('queue')||[];
-const SYNC_COLS=['tasks','chores','menu','shop','tx'];
-const store={tasks:{},chores:{},menu:{},shop:{},tx:{},config:{}};
+const SYNC_COLS=['tasks','plans','chores','menu','shop','tx'];
+const store={tasks:{},plans:{},chores:{},menu:{},shop:{},tx:{},config:{}};
 const listeners={};
 function emit(c){(listeners[c]||[]).forEach(cb=>cb({docs:Object.entries(store[c]).map(([id,d])=>({id,exists:true,data:()=>d})),metadata:{fromCache:false}}))}
 async function api(body,cfg){
@@ -746,13 +787,14 @@ async function init(){
   if(!CFG){setupSheet();return}
   S.db=DB;
   sub('tasks',d=>S.tasks=d);
+  sub('plans',d=>S.plans=d);
   sub('chores',d=>S.chores=d);
   sub('shop',d=>S.shop=d);
   sub('tx',d=>S.tx=d);
   sub('menu',d=>{S.menu={};d.forEach(x=>S.menu[x.id]=x)});
   sub('config',d=>{const by=Object.fromEntries(d.map(x=>[x.id,x]));S.rate=by.rate&&by.rate.usdGel?by.rate:S.rate});
   const c=LS.get('cache');if(c)applyAll(c);
-  const hs=location.hash.slice(1);if(hs==='kitchen'||hs==='budget'||hs==='tasks'){S.view=hs;render()}
+  const hs=location.hash.slice(1);if(hs==='kitchen'||hs==='budget'||hs==='tasks'||hs==='plans'){S.view=hs;render()}
   if(!S.me)whoSheet();else if(hs==='add-expense'){S.view='budget';render();txSheet()}
   if(hs)history.replaceState(null,'',location.pathname);
   await sync();
