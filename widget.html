@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Дом · виджет</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#121418;color:#ECEAE4;font-family:Inter,system-ui,-apple-system,Roboto,sans-serif;overflow:hidden}
+#bg{position:fixed;inset:0;background:#121418 center/cover no-repeat}
+#veil{position:fixed;inset:0;background:linear-gradient(180deg,rgba(14,16,20,.55),rgba(14,16,20,.75))}
+#w{position:relative;height:100%;padding:5vmin 6vmin;display:flex;flex-direction:column;gap:3.5vmin;text-shadow:0 1px 3px rgba(0,0,0,.55)}
+.h{display:flex;justify-content:space-between;align-items:baseline}
+.t{color:#B5A8E8;font-weight:600;font-size:clamp(14px,5vmin,22px)}
+.m{color:#B4B8C0;font-size:clamp(10px,3.4vmin,14px)}
+.cols{display:flex;gap:6vmin;flex:1;min-height:0}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:3vmin}
+.l{color:#B4B8C0;font-size:clamp(9px,3vmin,12px);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:1vmin}
+.v{font-size:clamp(12px,4.4vmin,18px);line-height:1.35}
+.v b{font-weight:600}
+ul{margin:0;padding:0;list-style:none}li{font-size:clamp(12px,4.2vmin,17px);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+li:before{content:"•  ";color:#B5A8E8}
+.mut{color:#B4B8C0}
+@media (max-aspect-ratio:1/1){.cols{flex-direction:column}}
+</style></head><body>
+<div id="bg"></div><div id="veil"></div>
+<div id="w"><div class="h"><span class="t">Дом</span><span class="m" id="time"></span></div><div class="cols" id="c"><div class="m">Загрузка…</div></div></div>
+<script>
+const P=new URLSearchParams(location.hash.slice(1)||location.search.slice(1));
+const EXEC=P.get('u'),KEY=P.get('k'),WHO=P.get('who')||'all',N=22;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function bg(u){if(!u){const i=1+Math.floor(Math.random()*N);u='bg/'+String(i).padStart(2,'0')+'.webp'}document.getElementById('bg').style.backgroundImage='url('+u+')'}
+function list(a,max,empty){if(!a||!a.length)return '<div class="v mut">'+empty+'</div>';
+ return '<ul>'+a.slice(0,max).map(x=>'<li>'+esc(x)+'</li>').join('')+(a.length>max?'<li class="mut">ещё '+(a.length-max)+'</li>':'')+'</ul>'}
+function render(d,stale){
+ bg(d.bg);document.getElementById('time').textContent=stale?'нет сети':new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+ const big=innerHeight>innerWidth*0.9,tasks=d.taskList||d.tasks||[],shop=d.shopList||[];
+ document.getElementById('c').innerHTML=
+  '<div class="col"><div><div class="l">Сегодня</div>'+list(tasks,big?7:4,'Задач нет')+'</div></div>'+
+  '<div class="col"><div><div class="l">Ужин</div><div class="v"><b>'+(d.dinner?esc(d.dinner):'<span class="mut">не задан</span>')+'</b></div></div>'+
+  '<div><div class="l">Купить</div>'+list(shop,big?6:3,'Ничего не нужно')+'</div></div>'}
+(async()=>{
+ if(!EXEC||!KEY){bg();document.getElementById('c').innerHTML='<div class="v mut">Нет ключа: откройте ссылку виджета целиком</div>';return}
+ try{const r=await fetch(EXEC+'?action=summary&who='+encodeURIComponent(WHO)+'&key='+encodeURIComponent(KEY));const d=await r.json();if(!d.ok)throw 0;
+  try{localStorage.setItem('dom_w',JSON.stringify(d))}catch(e){}render(d)}
+ catch(e){let d=null;try{d=JSON.parse(localStorage.getItem('dom_w'))}catch(_){}if(d)render(d,true);else{bg();document.getElementById('c').innerHTML='<div class="v mut">Нет связи с таблицей</div>'}}
+})();
+</script></body></html>
