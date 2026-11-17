@@ -123,7 +123,7 @@ html.ph .nav{background:rgba(18,20,24,.6);-webkit-backdrop-filter:blur(18px);bac
 <body>
 <div id="bgph"></div><div id="bgveil"></div>
 <script>
-(function(){var N=20,k='dom_bg_last',last=-1;try{last=+localStorage.getItem(k)}catch(e){}
+(function(){var N=21,k='dom_bg_last',last=-1;try{last=+localStorage.getItem(k)}catch(e){}
 var i;do{i=1+Math.floor(Math.random()*N)}while(N>1&&i===last);try{localStorage.setItem(k,i)}catch(e){}
 var u='bg/'+(i<10?'0':'')+i+'.webp',im=new Image();document.documentElement.classList.add('ph');
 im.onload=function(){var d=document.getElementById('bgph');d.style.backgroundImage='url('+u+')';d.classList.add('on')};im.src=u})();
