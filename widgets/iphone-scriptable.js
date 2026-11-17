@@ -29,8 +29,8 @@ async function load() {
 }
 
 // Случайное фото из приложения + тёмная вуаль, чтобы текст читался.
-async function photoBg(fam) {
-  const i = 1 + Math.floor(Math.random() * PHOTOS), n = (i < 10 ? "0" : "") + i;
+async function photoBg(fam, url) {
+  let n = (url || "").match(/(\d+)\.webp$/); n = n ? n[1] : String(1 + Math.floor(Math.random() * PHOTOS)).padStart(2, "0");
   const p = cachePath(`dom-bg-${n}.jpg`);
   let img;
   try {
@@ -42,44 +42,58 @@ async function photoBg(fam) {
   const w = img.size.width * s, h = img.size.height * s;
   const ctx = new DrawContext(); ctx.size = new Size(W, H); ctx.opaque = true; ctx.respectScreenScale = false;
   ctx.drawImageInRect(img, new Rect((W - w) / 2, (H - h) / 2, w, h));
-  ctx.setFillColor(new Color("#0E1014", 0.62)); ctx.fillRect(new Rect(0, 0, W, H));
+  ctx.setFillColor(new Color("#0E1014", 0.6)); ctx.fillRect(new Rect(0, 0, W, H));
   return ctx.getImage();
 }
 
-function t(stack, text, size, color, bold) {
+function t(stack, text, size, color, bold, lines) {
   const x = stack.addText(String(text)); x.font = bold ? Font.semiboldSystemFont(size) : Font.systemFont(size);
-  x.textColor = color || C.text; x.lineLimit = 1; x.minimumScaleFactor = 0.7;
-  x.shadowColor = new Color("#000000", 0.5); x.shadowRadius = 2; return x;
+  x.textColor = color || C.text; x.lineLimit = lines || 1; x.minimumScaleFactor = 0.75;
+  x.shadowColor = new Color("#000000", 0.55); x.shadowRadius = 2; return x;
 }
-const money = v => (v < 0 ? "−$" : "$") + Math.abs(v).toLocaleString("ru-RU");
+function label(stack, text) { t(stack, text.toUpperCase(), 9, C.muted, true); stack.addSpacer(3); }
+function list(stack, items, max, size, empty) {
+  if (!items.length) { t(stack, empty, size, C.muted); return; }
+  items.slice(0, max).forEach((x, i) => { t(stack, "•  " + x, size); if (i < Math.min(max, items.length) - 1) stack.addSpacer(2); });
+  if (items.length > max) { stack.addSpacer(2); t(stack, `+ ещё ${items.length - max}`, size - 1, C.muted); }
+}
 
 async function build(d) {
   const fam = config.widgetFamily || "medium";
-  const w = new ListWidget(); w.backgroundColor = C.bg; w.setPadding(14, 15, 14, 15);
+  const w = new ListWidget(); w.backgroundColor = C.bg; w.setPadding(13, 15, 13, 15);
   w.url = APP_URL; w.refreshAfterDate = new Date(Date.now() + 15 * 60 * 1000);
-  if (USE_PHOTO) { const bg = await photoBg(fam); if (bg) w.backgroundImage = bg; }
+  if (USE_PHOTO) { const bg = await photoBg(fam, d.bg); if (bg) w.backgroundImage = bg; }
 
   if (!d.ok) {
     t(w, "Дом", 13, C.lav, true); w.addSpacer(6);
-    t(w, WIDGET_KEY.startsWith("ВСТАВЬТЕ") ? "Вставьте ключ виджета" : "Нет связи с таблицей", 12, C.muted);
+    t(w, WIDGET_KEY.startsWith("ВСТАВЬТЕ") ? "Вставьте ключ виджета" : "Нет связи с таблицей", 12, C.muted, false, 2);
     return w;
   }
+  const tasks = d.taskList || d.tasks || [], shop = d.shopList || [];
   const head = w.addStack(); head.centerAlignContent();
   t(head, "Дом", 13, C.lav, true); head.addSpacer();
-  t(head, d.stale ? "нет сети" : new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }), 10, C.muted);
-  w.addSpacer(fam === "small" ? 6 : 8);
+  if (d.stale) t(head, "нет сети", 10, C.muted);
+  w.addSpacer(7);
 
-  t(w, "Осталось в месяце", 11, C.muted);
-  t(w, money(d.budgetLeftUsd), fam === "small" ? 24 : 28, d.budgetLeftUsd < 0 ? C.bad : C.good, true);
-  w.addSpacer(6);
-  t(w, `Задач: ${d.tasksCount}` + (d.shopCount ? ` · купить: ${d.shopCount}` : ""), 12);
-  if (fam !== "small") {
-    if (d.dinner) { w.addSpacer(3); t(w, "Ужин: " + d.dinner, 12); }
-    if (d.nextPayment) { w.addSpacer(3); t(w, `${d.nextPayment.day}-го: ${d.nextPayment.name} · ${d.nextPayment.amount}`, 11, C.peach); }
-  }
-  if (fam === "large" && d.tasks && d.tasks.length) {
-    w.addSpacer(10); t(w, "СЕГОДНЯ", 10, C.muted, true); w.addSpacer(4);
-    d.tasks.forEach(x => { t(w, "•  " + x, 13); w.addSpacer(3); });
+  if (fam === "small") {
+    label(w, "Ужин"); t(w, d.dinner || "не задан", 13, d.dinner ? C.text : C.muted, true, 2);
+    w.addSpacer(6);
+    t(w, `Задач: ${tasks.length}`, 12); t(w, `Купить: ${shop.length}`, 12);
+  } else if (fam === "medium") {
+    const row = w.addStack(); row.topAlignContent();
+    const L = row.addStack(); L.layoutVertically();
+    label(L, "Сегодня"); list(L, tasks, 4, 12, "Задач нет");
+    row.addSpacer(14);
+    const R = row.addStack(); R.layoutVertically();
+    label(R, "Ужин"); t(R, d.dinner || "не задан", 12, d.dinner ? C.text : C.muted, true, 1);
+    R.addSpacer(8);
+    label(R, "Купить"); list(R, shop, 2, 12, "Ничего");
+  } else {
+    label(w, "Сегодня"); list(w, tasks, 6, 13, "Задач нет");
+    w.addSpacer(12);
+    label(w, "Ужин"); t(w, d.dinner || "не задан", 14, d.dinner ? C.text : C.muted, true, 2);
+    w.addSpacer(12);
+    label(w, "Купить"); list(w, shop, 6, 13, "Ничего не нужно");
   }
   w.addSpacer();
   return w;

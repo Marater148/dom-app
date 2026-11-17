@@ -138,7 +138,14 @@ function summary(who) {
   const due = plan.items.filter(i => i.day).filter(i => { const hit = tx.find(x => !used.has(x.id) && x.planItem === i.name); if (hit) { used.add(hit.id); return false; } return true; })
     .sort((a, b) => ((a.day - d.getDate() + 31) % 31) - ((b.day - d.getDate() + 31) % 31));
   const next = due[0];
+  const taskList = tasks.map(x => x.title).concat(chores.map(c => c.title));
+  const shopList = shop.map(s => s.title || s.name || '').filter(Boolean);
+  const nBg = 22, iBg = 1 + Math.floor(Math.random() * nBg);
   return { ok: true, date: t, tasksCount: tasks.length + chores.length,
+    taskList: taskList.slice(0, 8), shopList: shopList.slice(0, 8),
+    tasksText: taskList.length ? taskList.slice(0, 5).map(x => '• ' + x).join('\n') + (taskList.length > 5 ? '\n+ ещё ' + (taskList.length - 5) : '') : 'Задач нет',
+    shopText: shopList.length ? shopList.slice(0, 5).join(', ') + (shopList.length > 5 ? ' +' + (shopList.length - 5) : '') : 'Ничего не нужно',
+    bg: 'https://marater148.github.io/dom-app/bg/' + (iBg < 10 ? '0' : '') + iBg + '.webp',
     tasks: tasks.map(x => x.title).concat(chores.map(c => c.title)).slice(0, 5),
     dinner: menu.dinner || '', lunch: menu.lunch || '', shopCount: shop.length,
     budgetLeftUsd: Math.round(planUsd - spent), spentUsd: Math.round(spent), planUsd: Math.round(planUsd),
