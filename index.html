@@ -742,7 +742,7 @@ function sub(path,cb){
 async function init(){
   S.me=LS.get('me');S.status='';
   render();
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if('serviceWorker' in navigator){var _hadSW=!!navigator.serviceWorker.controller;navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(r){r.update();document.addEventListener('visibilitychange',function(){if(!document.hidden)r.update()})}).catch(()=>{});navigator.serviceWorker.addEventListener('controllerchange',function(){if(_hadSW&&!window._swReloaded){window._swReloaded=1;location.reload()}})}
   if(!CFG){setupSheet();return}
   S.db=DB;
   sub('tasks',d=>S.tasks=d);
