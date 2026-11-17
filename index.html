@@ -123,7 +123,7 @@ html.ph .nav{background:rgba(18,20,24,.6);-webkit-backdrop-filter:blur(18px);bac
 <body>
 <div class="bgph" id="bgA"></div><div class="bgph" id="bgB"></div><div id="bgveil"></div>
 <script>
-(function(){var N=21,K='dom_bg_last',cur=-1,front=0,L=[document.getElementById('bgA'),document.getElementById('bgB')];
+(function(){var N=22,K='dom_bg_last',cur=-1,front=0,L=[document.getElementById('bgA'),document.getElementById('bgB')];
 try{cur=+localStorage.getItem(K)}catch(e){}
 document.documentElement.classList.add('ph');
 function pick(){var i;do{i=1+Math.floor(Math.random()*N)}while(N>1&&i===cur);return i}
