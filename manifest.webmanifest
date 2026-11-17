@@ -1,0 +1,21 @@
+{
+  "name": "Дом · Мария и Марат",
+  "short_name": "Дом",
+  "description": "Семейные задачи, меню, покупки и бюджет",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#121418",
+  "theme_color": "#121418",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Добавить трату", "url": "./#add-expense", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "Список покупок", "url": "./#kitchen", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}
+  ]
+}
